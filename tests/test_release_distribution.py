@@ -24,3 +24,13 @@ def test_source_launch_has_no_activation_code():
     assert 'license_manager' not in imports
     assert '_check_license' not in functions
     assert '_show_activate_dialog' not in functions
+
+
+def test_preprocess_worker_forwards_explicit_stem_repair():
+    import preprocess
+    args = ('input', 'output', 'intensity', 25, 51, 10, 500, 200, 3, .92,
+            20, 150, 'light', None, True, 'right')
+    with patch.object(preprocess, 'process_single_image') as call:
+        preprocess._preprocess_worker_task(args)
+    assert call.call_args.kwargs['repair_proximal_stem'] is True
+    assert call.call_args.kwargs['stem_direction'] == 'right'

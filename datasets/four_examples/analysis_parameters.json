@@ -17,7 +17,9 @@
         "intensity_low_ratio": 0.8,
         "pixel_hole_area": 16,
         "pixel_hole_connectivity": 4,
-        "dpi": null
+        "dpi": null,
+        "repair_proximal_stem": false,
+        "stem_direction": "top"
       },
       "analysis": {
         "root_model": "shared_crown",
@@ -41,7 +43,9 @@
         "intensity_low_ratio": 0.8,
         "pixel_hole_area": 16,
         "pixel_hole_connectivity": 4,
-        "dpi": null
+        "dpi": null,
+        "repair_proximal_stem": false,
+        "stem_direction": "top"
       },
       "analysis": {
         "root_model": "general",
@@ -65,7 +69,9 @@
         "intensity_low_ratio": 0.8,
         "pixel_hole_area": 16,
         "pixel_hole_connectivity": 4,
-        "dpi": null
+        "dpi": null,
+        "repair_proximal_stem": false,
+        "stem_direction": "top"
       },
       "analysis": {
         "root_model": "general",
@@ -89,14 +95,16 @@
         "intensity_low_ratio": 0.8,
         "pixel_hole_area": 0,
         "pixel_hole_connectivity": 4,
-        "dpi": null
+        "dpi": null,
+        "repair_proximal_stem": true,
+        "stem_direction": "top"
       },
       "analysis": {
         "root_model": "general",
         "crossing_context": false,
         "dpi": null
       },
-      "model_assumption": null,
+      "model_assumption": "Explicitly fill enclosed photographic pores in a detected broad proximal cut stem; inferred pixels are recorded separately. Exterior-connected gaps remain unresolved.",
       "ground_truth_available": false
     }
   ]

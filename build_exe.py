@@ -24,9 +24,15 @@ def sha256(path):
 
 
 def run(args, log, timeout=None):
+    env = os.environ.copy()
+    # Qt's Windows offscreen plugin otherwise starts with an empty font database.
+    # This affects headless checks, not the normal desktop application's fonts.
+    font_dir = Path(env.get('WINDIR', 'C:/Windows')) / 'Fonts'
+    if sys.platform == 'win32' and font_dir.is_dir():
+        env.setdefault('QT_QPA_FONTDIR', str(font_dir))
     with log.open('w', encoding='utf-8') as stream:
         subprocess.run([str(a) for a in args], cwd=ROOT, check=True,
-                       stdout=stream, stderr=subprocess.STDOUT, timeout=timeout)
+                       stdout=stream, stderr=subprocess.STDOUT, timeout=timeout, env=env)
 
 
 def main():
@@ -81,14 +87,16 @@ def main():
     for path in source_files:
         if sha256(path) != fingerprints[path.name]:
             raise RuntimeError('Source changed during build: ' + path.name)
-    for name in ['README.md', 'LICENSE', 'LICENSE-DOCS.md', 'CITATION.cff']:
+    for name in ['README.md', 'LICENSE.md', 'LICENSE-DOCS.md']:
         shutil.copy2(ROOT / name, app / name)
-    shutil.copytree(ROOT / 'docs', app / 'docs', dirs_exist_ok=True)
+    (app / 'docs').mkdir(exist_ok=True)
+    for name in ['USER_GUIDE.md', 'THIRD_PARTY_NOTICES.md']:
+        shutil.copy2(ROOT / 'docs' / name, app / 'docs' / name)
     (app / 'START_HERE.txt').write_text(
         f'Root Architecture V{APP_VERSION}\n\n'
         'Windows: double-click RootArchitecture.exe. No activation code is required.\n'
         'Keep the entire directory including _internal.\n'
-        'Manual: docs/USER_GUIDE.md. Methods: docs/TECHNICAL_METHODS.md.\n'
+        'Manual: docs/USER_GUIDE.md.\n'
         'macOS: use the separate source distribution and Python GUI/CLI.\n'
         'No reliable image calibration => pixel units; inspect quality flags.\n', encoding='utf-8')
     (app / 'SOURCE_SHA256.json').write_text(json.dumps(fingerprints, indent=2), encoding='utf-8')

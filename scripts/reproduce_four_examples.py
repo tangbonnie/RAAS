@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PARAMETERS = ROOT / "datasets/four_examples/analysis_parameters.json"
 SOURCE_FILES = (
     "app_version.py", "calibration.py", "preprocess.py", "root_segmentation.py",
-    "root_crown.py", "root_topology.py", "root_analysis.py", "root_gui.py",
+    "root_crown.py", "root_stem.py", "root_topology.py", "root_analysis.py", "root_gui.py",
     "scripts/reproduce_four_examples.py",
 )
 NAMES = {1: "shared_crown_wire", 2: "overlapping_wire", 3: "dense_wire", 4: "real_roots"}
@@ -134,6 +134,9 @@ def main():
     app = viewer = None
     if not args.no_figures:
         os.environ["QT_QPA_PLATFORM"] = "offscreen"
+        font_dir = Path(os.environ.get('WINDIR', 'C:/Windows')) / 'Fonts'
+        if sys.platform == 'win32' and font_dir.is_dir():
+            os.environ.setdefault('QT_QPA_FONTDIR', str(font_dir))
         from root_gui import QApplication, AnalysisResultViewer, LIGHT_QSS
         app = QApplication.instance() or QApplication([])
         app.setStyle("Fusion")
@@ -188,6 +191,16 @@ def main():
                        for axis in viewer.fig.axes for label in axis.texts):
                     raise RuntimeError("The actual GUI result viewer reported a display error")
                 viewer.fig.savefig(output / f"figure_{number}.png", dpi=160, facecolor="white")
+                if not viewer.grab().save(str(output / f"interface_{number}.png")):
+                    raise RuntimeError('Failed to save the actual result widget screenshot')
+                stem_roi = json.loads(result.get('Stem_Repair_ROI', 'null'))
+                if stem_roi:
+                    r0, c0, r1, c1 = stem_roi
+                    for axis in viewer.fig.axes[:2]:
+                        axis.set_xlim(c0 - 50, c1 + 90)
+                        axis.set_ylim(r1 + 120, r0 - 30)
+                    viewer.fig.savefig(output / f"stem_detail_{number}.png", dpi=160,
+                                       facecolor='white')
             rows.append(public)
             provenance["runs"].append(dict(
                 image=number, parameters=example, input_sha256=sha256(inputs[number]),

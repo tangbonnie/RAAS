@@ -868,7 +868,7 @@ class PreprocessWorker(QThread):
                  window_size=25, block_size=51, offset=10,
                  min_size=500, hole_size=200, close_radius=3,
                  bright_thresh=0.92, border_margin=20, isolation_distance=150,
-                 num_workers=4):
+                 num_workers=4, repair_proximal_stem=False, stem_direction='top'):
         super().__init__()
         self.input_dirs = input_dirs
         self.output_dir = output_dir
@@ -883,6 +883,8 @@ class PreprocessWorker(QThread):
         self.border_margin = border_margin
         self.isolation_distance = isolation_distance
         self.num_workers = num_workers
+        self.repair_proximal_stem = repair_proximal_stem
+        self.stem_direction = stem_direction
 
     def run(self):
         try:
@@ -911,7 +913,8 @@ class PreprocessWorker(QThread):
                     (fp, self.output_dir, self.method,
                      self.window_size, self.block_size, self.offset,
                      self.min_size, self.hole_size, self.close_radius,
-                     self.bright_thresh, self.border_margin, self.isolation_distance)
+                     self.bright_thresh, self.border_margin, self.isolation_distance,
+                     'auto', None, self.repair_proximal_stem, self.stem_direction)
                     for fp in raw_files
                 ]
                 futures = {pool.submit(preprocess._preprocess_worker_task, a): a
@@ -955,9 +958,12 @@ class SinglePreprocessWorker(QThread):
     def __init__(self, img_path, output_dir, method='texture',
                  window_size=25, block_size=51, offset=10,
                  min_size=500, hole_size=200, close_radius=3,
-                 bright_thresh=0.92, border_margin=20, isolation_distance=150):
+                 bright_thresh=0.92, border_margin=20, isolation_distance=150,
+                 repair_proximal_stem=False, stem_direction='top'):
         super().__init__()
         self.img_path = img_path
+        self.repair_proximal_stem = repair_proximal_stem
+        self.stem_direction = stem_direction
         self.output_dir = output_dir
         self.method = method
         self.window_size = window_size
@@ -1034,6 +1040,11 @@ class SinglePreprocessWorker(QThread):
                 # 移除离散噪点
                 binary = preprocess.remove_isolated_noise(
                     binary, isolation_distance=self.isolation_distance)
+
+            if self.repair_proximal_stem:
+                from root_stem import repair_proximal_stem
+                binary, _, _ = repair_proximal_stem(
+                    binary, self.stem_direction, enabled=True)
 
             # 骨架化
             skeleton = preprocess.compute_skeleton(binary)
@@ -2183,6 +2194,9 @@ class AnalysisResultViewer(QWidget):
         ('Root_Model',            'Root model'),
         ('Scale_Source',          'Scale source'),
         ('Crown_Annotation',      'Crown source'),
+        ('Stem_Repair_Status',    'Stem pore repair'),
+        ('Stem_Repair_Holes',     'Filled stem pores'),
+        ('Stem_Repair_Pixels',    'Inferred tissue (px)'),
         ('MF_Quality',            'MF fit quality'),
         ('DPI',                   'DPI'),
         ('Root_Length_px',        'Root Length (px)'),
@@ -3413,6 +3427,19 @@ class MainWindow(QMainWindow):
         self._t(param_form.labelForField(self.pp_method), 'pp_method_lbl')
         param_form.labelForField(self.pp_method).setToolTip(tr('tt_method'))
 
+        self.pp_stem_repair = QCheckBox('修复粗根基内部伪孔 / Repair stem pores')
+        self.pp_stem_repair.setToolTip(
+            '仅在拍摄暗斑造成粗根基内部伪孔时启用；保留外部空隙和侧根。'
+            '请重新预处理原图，并检查结果。默认关闭。')
+        param_form.addRow(self.pp_stem_repair)
+        self.pp_stem_direction = QComboBox()
+        for label, direction in [('上 / Top', 'top'), ('下 / Bottom', 'bottom'),
+                                 ('左 / Left', 'left'), ('右 / Right', 'right')]:
+            self.pp_stem_direction.addItem(label, direction)
+        self.pp_stem_direction.setEnabled(False)
+        self.pp_stem_repair.toggled.connect(self.pp_stem_direction.setEnabled)
+        param_form.addRow('根基位置 / Stem side', self.pp_stem_direction)
+
         self.pp_window = QSpinBox()
         self.pp_window.setRange(5, 151); self.pp_window.setSingleStep(2); self.pp_window.setValue(25)
         self.pp_window.setToolTip(tr('tt_window'))
@@ -3893,6 +3920,8 @@ class MainWindow(QMainWindow):
             bright_thresh=self.pp_bright_thresh.value(),
             border_margin=self.pp_border_margin.value(),
             isolation_distance=self.pp_isolation.value(),
+            repair_proximal_stem=self.pp_stem_repair.isChecked(),
+            stem_direction=self.pp_stem_direction.currentData(),
         )
         self._pp_preview_worker.finished.connect(self._pp_on_preview_done)
         self._pp_preview_worker.error.connect(self._pp_on_preview_error)
@@ -3950,6 +3979,8 @@ class MainWindow(QMainWindow):
             border_margin=self.pp_border_margin.value(),
             isolation_distance=self.pp_isolation.value(),
             num_workers=self.pp_workers.value(),
+            repair_proximal_stem=self.pp_stem_repair.isChecked(),
+            stem_direction=self.pp_stem_direction.currentData(),
         )
         self.worker.progress.connect(self._pp_on_progress)
         self.worker.sample_done.connect(self._pp_on_sample_done)

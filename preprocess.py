@@ -566,7 +566,8 @@ def process_single_image(img_path, output_dir, method='multiscale',
                           bright_thresh=0.92, border_margin=20,
                           isolation_distance=150, foreground='auto',
                           dpi=None, intensity_low_ratio=0.8,
-                          pixel_hole_area=0, pixel_hole_connectivity=8):
+                          pixel_hole_area=0, pixel_hole_connectivity=8,
+                          repair_proximal_stem=False, stem_direction='top'):
     """
     处理单张图像: 分割 → 后处理 → 骨架化 → 保存。
 
@@ -597,6 +598,23 @@ def process_single_image(img_path, output_dir, method='multiscale',
     save_scale = {'pnginfo': scale_info}
     if source_dpi is not None:
         save_scale['dpi'] = (source_dpi, source_dpi)
+
+    def repair_stem_and_record(binary):
+        if not repair_proximal_stem:
+            return binary
+        import json
+        from root_stem import repair_proximal_stem as repair_stem
+        repaired, info, inferred = repair_stem(binary, stem_direction, enabled=True)
+        scale_info.add_text('Stem_Repair', json.dumps(info))
+        # The raw image is untouched. Keep the exact inferred pixels separately
+        # from the measured foreground, including a blank mask after rejection.
+        audit_dir = os.path.join(output_dir, 'stem_repair')
+        os.makedirs(audit_dir, exist_ok=True)
+        _PilImage.fromarray(inferred.astype(np.uint8) * 255).save(
+            os.path.join(audit_dir, f'{basename}.png'), 'PNG', **save_scale)
+        with open(os.path.join(audit_dir, f'{basename}.json'), 'w', encoding='utf-8') as f:
+            json.dump(info, f, ensure_ascii=False, indent=2)
+        return repaired
 
     img = io.imread(img_path)
     if img.ndim == 3:
@@ -629,6 +647,7 @@ def process_single_image(img_path, output_dir, method='multiscale',
                                                 background_connectivity=pixel_hole_connectivity)
             import json
             scale_info.add_text('Pixel_Hole_Repair',json.dumps({k:v for k,v in hole_info.items() if k!='repairs'}))
+        binary = repair_stem_and_record(binary)
         skeleton = compute_skeleton(binary)
         binary_path = os.path.join(binary_dir, f'{basename}.png')
         skeleton_path = os.path.join(skeleton_dir, f'{basename}.png')
@@ -669,6 +688,7 @@ def process_single_image(img_path, output_dir, method='multiscale',
     binary = remove_isolated_noise(binary, isolation_distance=isolation_distance)
 
     # 骨架化
+    binary = repair_stem_and_record(binary)
     skeleton = compute_skeleton(binary)
 
     # 保存 (白色前景, 黑色背景)，用 PIL 写回原始 DPI 元数据
@@ -750,6 +770,10 @@ def main():
                              'dark=亮背景+暗根系, light=暗背景+亮根系. '
                              '对于稀疏前景 (铜丝模体、合成图像) 强烈建议显式指定.')
 
+    parser.add_argument('--repair-proximal-stem', action='store_true',
+                        help='可选：填补粗根基内部封闭的拍摄伪孔（默认关闭，保存修复记录）')
+    parser.add_argument('--stem-direction', choices=['top', 'bottom', 'left', 'right'],
+                        default='top', help='粗根基位于图像哪一侧（默认 top）')
     args = parser.parse_args()
 
     for d in args.input_dirs:
@@ -795,6 +819,8 @@ def main():
                 border_margin=args.border_margin,
                 isolation_distance=args.isolation_distance,
                 foreground=args.foreground,
+                repair_proximal_stem=args.repair_proximal_stem,
+                stem_direction=args.stem_direction,
             )
             print("OK")
             success += 1
@@ -824,17 +850,15 @@ def _preprocess_worker_task(args):
 
     为兼容旧调用方 (12 元组), 若 args 长度为 12 则 foreground 默认 'auto'.
     """
-    dpi = args[13] if len(args)==14 else None
-    args = args[:13] if len(args)==14 else args
-    if len(args) == 13:
-        (fpath, output_dir, method, window_size, block_size, offset,
-         min_size, hole_size, close_radius, bright_thresh,
-         border_margin, isolation_distance, foreground) = args
-    else:
-        (fpath, output_dir, method, window_size, block_size, offset,
-         min_size, hole_size, close_radius, bright_thresh,
-         border_margin, isolation_distance) = args
-        foreground = 'auto'
+    if not 12 <= len(args) <= 16:
+        raise ValueError('preprocess worker expects 12 to 16 arguments')
+    (fpath, output_dir, method, window_size, block_size, offset,
+     min_size, hole_size, close_radius, bright_thresh,
+     border_margin, isolation_distance) = args[:12]
+    foreground = args[12] if len(args) > 12 else 'auto'
+    dpi = args[13] if len(args) > 13 else None
+    repair_stem = args[14] if len(args) > 14 else False
+    stem_direction = args[15] if len(args) > 15 else 'top'
     process_single_image(
         fpath, output_dir,
         method=method,
@@ -848,6 +872,7 @@ def _preprocess_worker_task(args):
         border_margin=border_margin,
         isolation_distance=isolation_distance,
         foreground=foreground, dpi=dpi,
+        repair_proximal_stem=repair_stem, stem_direction=stem_direction,
     )
     return fpath
 

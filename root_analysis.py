@@ -434,6 +434,20 @@ def analyze_root_image(binary_path, skeleton_path, dpi=None, sample_id="",
 
     # 加载二值化图像
     binary_img = load_binary_image(binary_path)
+    # This records explicit preprocessing; never rebuild an imported/manual
+    # skeleton here. Both saved inputs already represent the repaired mask.
+    from PIL import Image as _Image
+    with _Image.open(binary_path) as _im:
+        stem_metadata = _im.info.get('Stem_Repair')
+    try:
+        stem_info = json.loads(stem_metadata) if stem_metadata else {}
+        if not isinstance(stem_info, dict):
+            raise ValueError('expected object')
+        stem_holes = int(stem_info.get('filled_holes', 0))
+        stem_pixels = int(stem_info.get('added_pixels', 0))
+    except (ValueError, TypeError):
+        stem_info = {'status': 'invalid_metadata'}
+        stem_holes = stem_pixels = 0
 
     # 骨架：直接加载 PNG 骨架文件（无损格式，包含人工修正和软件优化结果）
     # load_skeleton_image 仅执行二值化阈值判断，不调用 skeletonize/thinning，
@@ -514,6 +528,11 @@ def analyze_root_image(binary_path, skeleton_path, dpi=None, sample_id="",
         'Crown_Annotation': sa['crown_source'],
         '_crown_box': sa['crown_box'],
         'Topology_Status': sa['topology_status'],
+        'Stem_Repair_Status': stem_info.get('status', 'disabled'),
+        'Stem_Repair_Holes': stem_holes,
+        'Stem_Repair_Pixels': stem_pixels,
+        'Stem_Repair_ROI': json.dumps(stem_info.get('roi_rc')),
+        'Stem_Repair_Assumption': stem_info.get('assumption', ''),
         'Topology_Error': sa.get('topology_error',''),
         'Cycle_Rank': sa['cycle_rank'],
         'Num_Uncertain_Junctions': sa.get('num_uncertain_junctions',0),

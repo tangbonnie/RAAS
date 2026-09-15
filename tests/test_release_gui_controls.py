@@ -31,6 +31,11 @@ def test_gui_model_controls_default_to_general_and_context(app):
     window = root_gui.MainWindow()
     assert window.an_root_model.currentData() == 'general'
     assert window.an_crossing_context.isChecked()
+    assert not window.pp_stem_repair.isChecked()
+    assert window.pp_stem_direction.currentData() == 'top'
+    assert not window.pp_stem_direction.isEnabled()
+    window.pp_stem_repair.setChecked(True)
+    assert window.pp_stem_direction.isEnabled()
     window.an_root_model.setCurrentIndex(1)
     assert window.an_root_model.currentData() == 'shared_crown'
     assert any(window.pp_method.itemText(i).startswith('intensity')
@@ -102,3 +107,35 @@ def test_intensity_preview_matches_saved_segmentation(app, workspace_temp):
     assert not errors and len(outputs) == 1
     assert np.array_equal(outputs[0][0], np.asarray(Image.open(binary)))
     assert np.array_equal(outputs[0][1], np.asarray(Image.open(skeleton)))
+
+
+def test_stem_repair_preview_matches_saved_mask_and_audit(app, workspace_temp):
+    import json
+    from tests.test_root_stem import porous_stem
+    source = workspace_temp / 'porous.png'
+    original = porous_stem()
+    Image.fromarray(original.astype('uint8') * 255).save(source)
+    binary, skeleton = root_gui.preprocess.process_single_image(
+        str(source), str(workspace_temp / 'saved'), method='intensity',
+        repair_proximal_stem=True)
+    worker = root_gui.SinglePreprocessWorker(str(source), str(workspace_temp),
+                                            method='intensity', repair_proximal_stem=True)
+    outputs, errors = [], []
+    worker.finished.connect(lambda raw, mask, skel, path: outputs.append((mask, skel)))
+    worker.error.connect(errors.append)
+    worker.run()
+    assert not errors and len(outputs) == 1
+    with Image.open(binary) as saved:
+        info = json.loads(saved.info['Stem_Repair'])
+        repaired = np.asarray(saved) > 0
+        assert np.array_equal(outputs[0][0], np.asarray(saved))
+    with Image.open(skeleton) as saved:
+        assert json.loads(saved.info['Stem_Repair']) == info
+        assert np.array_equal(outputs[0][1], np.asarray(saved))
+    assert info['status'] == 'applied' and info['filled_holes'] == 3
+    audit = np.asarray(Image.open(workspace_temp / 'saved/stem_repair/porous.png')) > 0
+    assert np.array_equal(audit, original ^ repaired)
+    assert np.array_equal(np.asarray(Image.open(source)) > 0, original)
+    result = root_gui.root_analysis.analyze_root_image(binary, skeleton)
+    assert result['Stem_Repair_Holes'] == 3
+    assert result['Stem_Repair_Pixels'] == int(audit.sum())

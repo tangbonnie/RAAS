@@ -564,10 +564,15 @@ def analyze_topology(skeleton, dpi=300, binary=None, base_rc=None,
                                   preserve_components=root_direction!='none',
                                   allow_short_context=crossing_context)
     contract_degree_two(edges,protected=(crown_base,))
-    # Medial axes of blunt ends contain short cap branches; their extent is
-    # below the local radius. Record this raster-level pruning explicitly.
+    # A short path is not sufficient evidence of a cap artifact: a thin real
+    # lateral beside a thick root can also be shorter than 1.5 parent radii.
+    # Interior paths fit the junction's foreground inscribed disk. An oblique
+    # flat cap can also produce two short corner arms outside that disk: only
+    # accept this case when their endpoints are joined by solid foreground,
+    # rather than the background gap between two actual terminal roots.
     raster_pruned = 0
     adj0=adjacency(edges)
+    cap_edges = dict(edges)  # assess paired arms before either one is deleted
     axis0=0 if root_direction in ('top','bottom','none') else 1
     sign0=-1 if root_direction in ('bottom','right') else 1
     proximal=root_anchor
@@ -575,7 +580,27 @@ def analyze_topology(skeleton, dpi=300, binary=None, base_rc=None,
         leaf = e.u if len(adj0[e.u])==1 else (e.v if len(adj0[e.v])==1 else None)
         if leaf is not None and leaf != proximal and (len(adj0[e.other(leaf)])>=3 or e.other(leaf)==crown_base):
             junction=coords[e.other(leaf)].astype(int)
-            if e.length < 1.5*radius[tuple(junction)]:
+            junction_radius = float(radius[tuple(junction)])
+            inside_cap = np.max(np.linalg.norm(e.path - coords[e.other(leaf)], axis=1)) <= junction_radius + np.sqrt(2.)
+            paired_cap = False
+            if not inside_cap and len(adj0[e.other(leaf)]) == 3:
+                for other_id in adj0[e.other(leaf)]:
+                    other = cap_edges.get(other_id)
+                    if other is None or other_id == i:
+                        continue
+                    other_leaf = other.other(e.other(leaf))
+                    if len(adj0[other_leaf]) != 1 or other.length >= 1.5*junction_radius:
+                        continue
+                    span = np.linalg.norm(coords[leaf] - coords[other_leaf])
+                    chord = np.linspace(coords[leaf], coords[other_leaf], max(2, int(np.ceil(2*span))))
+                    lo = np.maximum(0, np.floor(chord.min(axis=0)).astype(int)-1)
+                    hi = np.minimum(mask.shape, np.ceil(chord.max(axis=0)).astype(int)+2)
+                    local_mask = mask[lo[0]:hi[0], lo[1]:hi[1]].astype(float)
+                    support = map_coordinates(local_mask, (chord-lo).T, order=1, mode='constant', cval=0.)
+                    if np.all(support >= .5):
+                        paired_cap = True
+                        break
+            if e.length < 1.5*junction_radius and (inside_cap or paired_cap):
                 del edges[i]
                 raster_pruned += 1
     contract_degree_two(edges,protected=(crown_base,))

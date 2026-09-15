@@ -95,7 +95,7 @@ def test_missing_scale_never_invents_measured_centimetres():
 
 @pytest.mark.parametrize('number,tips,forks,crossings',[(17,7,6,1),(33,6,5,1)])
 def test_reviewed_crossing_samples(number,tips,forks,crossings):
-    p=Path(__file__).resolve().parents[1]/'datasets'/'copper_wire'/'original'/f'600-dicot-sim-{number}-1-120-15-deg0.jpg'
+    p=optional_copper_sample(f'600-dicot-sim-{number}-1-120-15-deg0.jpg')
     b=np.asarray(Image.open(p).convert('L'))<128
     a=analyze_topology(b,binary=b)
     assert (a['num_tips'],a['num_forks'],a['num_crossings'])==(tips,forks,crossings)
@@ -114,10 +114,22 @@ def test_empty_and_single_pixel_are_safe():
 REFERENCES=json.loads((Path(__file__).parent/'root_demo_references.json').read_text(encoding='utf-8'))['samples']
 
 
+def optional_copper_sample(filename):
+    """Historical reference images are optional; the public release has four examples."""
+    import os
+    directory = os.environ.get('RAAS_EXTERNAL_COPPER_DIR')
+    if not directory:
+        pytest.skip('Optional reference data: set RAAS_EXTERNAL_COPPER_DIR')
+    path = Path(directory) / filename
+    if not path.is_file():
+        pytest.skip(f'Optional reference image unavailable: {filename}')
+    return path
+
+
 @pytest.mark.parametrize('filename',list(REFERENCES))
 def test_reviewed_demo_reference_counts(filename):
     ref=REFERENCES[filename]
-    p=Path(__file__).resolve().parents[1]/'datasets'/'copper_wire'/'original'/filename
+    p=optional_copper_sample(filename)
     b=np.asarray(Image.open(p).convert('L'))<128
     a=analyze_topology(b,binary=b,crown_box=ref.get('crown_box'))
     assert (a['num_tips'],a['num_forks'],a['num_crossings'])==(ref['tips'],ref['forks'],ref['crossings'])

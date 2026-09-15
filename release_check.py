@@ -31,9 +31,24 @@ def run(output_dir):
         futures=[pool.submit(_analysis_worker_task,(str(binary),str(skeleton),None,'spawn-check','top')) for _ in range(2)]
         parallel=[f.result(timeout=180) for f in futures]
     assert all(r['Num_Crossings']==1 and r['Num_Tips']==3 for r in parallel)
+    from preprocess import process_single_image
+    porous = np.zeros((360, 220), dtype='uint8')
+    porous[20:330, 90:130] = 255
+    for r0, r1, c0, c1 in [(29, 35, 98, 104), (41, 48, 116, 121), (58, 66, 104, 111)]:
+        porous[r0:r1, c0:c1] = 0
+    stem_source = out / 'porous-stem.png'
+    Image.fromarray(porous).save(stem_source)
+    stem_binary, stem_skeleton = process_single_image(
+        str(stem_source), str(out / 'stem'), method='intensity',
+        foreground='light', repair_proximal_stem=True)
+    stem = analyze_root_image(stem_binary, stem_skeleton)
+    assert stem['Stem_Repair_Status'] == 'applied' and stem['Stem_Repair_Holes'] == 3
+    assert stem['Num_Forks'] == 0 and stem['Num_Tips'] == 1
     app=QApplication.instance() or QApplication([])
     window=MainWindow()
     assert window.an_dpi.value()==0 and window.an_root_direction.currentData()=='top'
+    assert not window.pp_stem_repair.isChecked()
+    assert window.pp_stem_direction.currentData() == 'top'
     viewer=AnalysisResultViewer()
     viewer.show_result(str(binary),str(skeleton),result)
     app.processEvents()
@@ -55,7 +70,8 @@ def run(output_dir):
     assert (resource/'assets'/'xjn.png').is_file()
     report={'version':APP_VERSION,'frozen':bool(getattr(sys,'frozen',False)),
             'topology':'pass','unknown_scale':'pass','spawn_workers':'pass',
-            'gui_render':'pass','assets':'pass','activation_required':False}
+            'gui_render':'pass','assets':'pass','activation_required':False,
+            'proximal_stem_repair':'pass', 'stem_repair_default':'off'}
     (out/'self-test.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
     window.close();viewer.close()
     return 0

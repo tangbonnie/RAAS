@@ -1,106 +1,83 @@
-# Root Architecture — 根系构型参数量化分析系统
+# RAAS — 根系构型参数量化分析系统
 
-**V1.0.0 · 无激活码发行版 · Python / Windows GUI / macOS 源码运行 / 命令行**
+**V1.0.0 · 无激活码 · Windows EXE / Windows 与 macOS 源码 GUI / 命令行**
 
-项目仓库：[tangbonnie/RAAS](https://github.com/tangbonnie/RAAS)。
-
-本软件从二维根系图像生成二值掩膜和单像素骨架，再计算根长、直径、表面积与体积估计、可见端点、分叉与交叉候选、分支角、拓扑指数、Strahler 级序、分形和多重分形指标。图形界面同时显示二值图、骨架识别点和指标表，并支持批处理与 CSV、Excel、图片导出。
+RAAS 将二维根系图像分割为二值图和单像素骨架，计算根长、直径、表面积与体积估计、可见端点、分叉与交叉候选、分支角、拓扑及分形指标。软件三栏结果同时显示二值图、骨架识别点和指标表，支持批处理与结果导出。
 
 - **正式作者：** 唐清芸（石河子大学农学院、新疆农垦科学院）
 - **软件版权人：** 王国栋（新疆农垦科学院）
-- **版本：** V1.0.0；源码许可证见 [LICENSE](LICENSE)，文档许可证见 [LICENSE-DOCS.md](LICENSE-DOCS.md)，引用信息见 [CITATION.cff](CITATION.cff)。数据的来源和权利状态单独见 [数据集说明](datasets/README.md)。依赖保持各自许可证，见 [第三方声明](docs/THIRD_PARTY_NOTICES.md)；本项目 MIT 许可证不替代 PyQt5、Qt 等依赖的条款。
+- **下载 Windows 便携包：** [GitHub Releases](https://github.com/tangbonnie/RAAS/releases)
+- **操作说明：** [使用指南](docs/USER_GUIDE.md)
+- **测试图像：** [三张铜丝与一张真实根系](datasets/README.md)
 
-## 从这里开始
+## Windows EXE
 
-| 需要 | 文档 / 入口 |
-|---|---|
-| Windows EXE、Windows/macOS GUI、命令行、参数与结果解释 | [详细使用指南](docs/USER_GUIDE.md) |
-| 用于 CEA 论文的方法、实现细节、数学公式和适用条件 | [技术方案与公式](docs/TECHNICAL_METHODS.md) |
-| 直接离线阅读排版后的公式 | [技术方案 HTML](docs/TECHNICAL_METHODS.html) · [使用指南 HTML](docs/USER_GUIDE.html) |
-| 数据目录、原图尺寸、文件哈希、未纳入的大文件 | [数据集说明](datasets/README.md) · [数据清单](datasets/manifest.csv) |
-| 运行图形界面 | `python root_gui.py` 或 `python launcher.py` |
-| 自动化分析 | `python preprocess.py --help` 和 `python root_analysis.py --help` |
+从 Releases 下载最新 Windows 便携包并完整解压，双击 `RootArchitecture.exe`。保留同目录的 `_internal` 及其全部文件。无需安装 Python，无需密钥或激活码。EXE 是 Windows 图形界面入口；命令行分析使用源码脚本。
 
-## 安装与启动
+## Windows 源码 GUI
 
-先进入包含本 README 的项目目录。当前实际验证环境为 **Windows x64、Python 3.13.12**。其他系统可按以下方式从源码安装；**本次没有在 macOS 上实机验证，也没有生成 macOS 应用包**。
-
-仓库发布后，可用 Git 获取源码，或在 GitHub 选择 Code → Download ZIP 后解压：
-
-```bash
-git clone https://github.com/tangbonnie/RAAS.git
-cd RAAS
-```
-
-### Windows 源码运行
-
-安装 Python 3.12 或 3.13 后，在 PowerShell 中运行；下面以已安装的 3.12 为例：
+安装 Python 3.12 或 3.13，在项目根目录运行：
 
 ```powershell
 py -3.12 -m venv .venv
-.venv\Scripts\python.exe -m pip install --upgrade pip
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 .venv\Scripts\python.exe root_gui.py
 ```
 
-已取得 Windows 便携发行包时，完整解压后双击 `RootArchitecture.exe`。必须保留同目录的 `_internal`，不需要另装 Python，**不需要密钥或激活码**。EXE 是 GUI 入口；命令行批量处理使用下述 Python 脚本。
+## macOS 源码 GUI
 
-### macOS 源码运行
-
-以已安装 Python 3.12 为例，在“终端”运行：
+安装与机器架构对应的 Python 3.12 后运行：
 
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python root_gui.py
 ```
 
-Apple Silicon 与 Intel Mac 的解释器、依赖须对应机器架构。Windows `.exe` 不能作为 macOS 原生程序运行。平台问题处理见使用指南。
+macOS 使用 Python 源码入口，不能原生运行 Windows EXE。本项目尚未完成 macOS 实机验证。
 
-## 命令行最短流程
+## 命令行
 
-以下命令在已经启用虚拟环境时适用于 Windows 和 macOS；也可以把 `python` 换为该环境解释器的完整路径。先把少量代表性原图放入 `input` 目录。
+以下命令在已启用 Python 环境的 Windows 和 macOS 中通用。`input` 目录应只放同一处理类型的图像。
 
 ```bash
 python preprocess.py -i input -o processed --method line_art
 python root_analysis.py -b processed/binary -s processed/skeleton -o results --root-direction top
 ```
 
-`line_art` 适用于白底黑线模拟图；真实图像要先比较分割方法及预览。`processed/binary` 和 `processed/skeleton` 的样本文件名必须相同。未提供可信物理尺度时结果使用 px、px²、px³，物理单位列留空；只有确认真实扫描分辨率后才使用 `--dpi 600` 等覆盖值。
+白底黑线铜丝采用 `line_art`。黑底亮根可用 `intensity --foreground light`，先检查二值图是否保留细根。
 
-## 准确性和结果边界
+### 可选：粗根基伪孔修复
 
-- 一般模型 `general` 是默认选项。`shared_crown` 仅适用于**已知各根独立、没有侧分枝、从共同根基发出**的样本；其共享段属于模型推断，不能用于消除真实侧根。
-- `Num_Tips` 为扣除根基后的可见骨架端点计数，包含疑似裁切端点；端点不等于逐一人工确认的生物学根尖。
-- 分割误差、遮挡、断裂与密集重叠会影响所有后续指标。`Topology_Status=ok` 仅表示结构一致性检查通过，不代表测量误差为零。
-- `unresolved`、`model_assumed`、未消解环及测宽覆盖率均需随结果报告。没有定义或可信前提不足的指标显示 `N/A`，不要替换成 0。
-- 仓库中的四张示例用于检查流程和识别点，不具有完整实物测量真值。复杂真实根系尚未达到全自动精准量化，不能把当前输出直接当作论文验证真值。
+拍摄造成粗根基内部出现封闭暗孔时，可在 GUI 预处理中勾选“修复粗根基内部伪孔 / Repair stem pores”，或运行：
 
-## 项目结构
-
-```text
-.
-├── root_gui.py / launcher.py       # 图形界面与启动器
-├── preprocess.py                  # 分割、后处理与骨架化
-├── root_segmentation.py           # 亮度滞后分割
-├── root_analysis.py               # 统一分析入口、CLI 与结果表
-├── root_topology.py               # 图结构、交叉处理、测量与拓扑指标
-├── root_crown.py                   # 根冠、微孔处理与共同根基模型
-├── calibration.py                 # 尺度来源与单位换算
-├── assets/                        # 程序图标和界面资源
-├── tests/                         # 算法与发行回归检查
-├── datasets/                      # 图像及来源、参数、哈希清单
-├── docs/                          # 使用指南和技术方案
-├── requirements.txt               # 依赖范围
-├── requirements-lock.txt          # 当前 Windows 验证环境的固定版本
-└── build_exe.py / RootArchitecture.spec
+```bash
+python preprocess.py -i input -o processed --method intensity --foreground light --repair-proximal-stem --stem-direction top
+python root_analysis.py -b processed/binary -s processed/skeleton -o results --root-direction top
 ```
 
-本目录用于上传源码、运行所需资源、文档与数据集；不包含本地虚拟环境、历史分析结果、密钥或旧发行包。Windows 编译产物单独交付，并适合放在 GitHub Releases 中，而不纳入源码历史。
+该功能**默认关闭**，仅在指定方向的粗根基区域内修复满足条件的封闭伪孔，再生成骨架。`top` 表示根基在上方；其他方向按实际摆放选择。启用后核对修复区域与原图，真实空隙不应被当成拍摄伪孔。它不能恢复被遮挡的根，也不能解决所有断裂和交叉问题。
 
-## 验证与编译
+## 四张示例
+
+仓库仅保留 `datasets/four_examples/original/input_1.png` 至 `input_4.png`。逐图处理设置和输入哈希在 `datasets/four_examples/analysis_parameters.json`。
+
+```bash
+python scripts/reproduce_four_examples.py --images 1
+python scripts/reproduce_four_examples.py --images 2 3 4
+```
+
+不指定 `--images` 会运行全部四张。实际软件组件生成的结果图、指标、点位和运行记录位于 `results/four_examples`。每次合并表只包含本次所选图像。
+
+## 解释结果
+
+- 无可靠 DPI 或标尺时，使用 px、px²、px³；不要为得到厘米指标填写猜测的 DPI。
+- `Num_Tips` 是扣除根基后的可见骨架端点，包含疑似裁切端点；它不是逐个人工确认的生物学根尖。
+- `general` 为默认模型。`shared_crown` 只用于已知各根独立、没有侧分枝并共用根基的样本；共享段属于模型推断。
+- 图中密集重叠、拍摄伪影和分割错误仍可能影响指标。检查 `Topology_Status`、未消解环、测宽覆盖率和 `N/A`；四张示例没有完整实物真值。
+
+## 测试与编译
 
 ```bash
 python -m pip install -r requirements-dev.txt
@@ -108,10 +85,10 @@ python -m pytest tests -q
 python build_exe.py
 ```
 
-编译 Windows EXE 请在 Windows 上执行；输出为 `dist/RootArchitecture/RootArchitecture.exe`，发布时保留整个 `RootArchitecture` 目录。回归检查验证限定行为，不等同于对全部生物样本完成准确性验证。
+Windows EXE 必须在 Windows 上编译，产物为 `dist/RootArchitecture/`。历史外部铜丝数据未随精简仓库发布；依赖该数据的可选测试缺失时应报告跳过，不能计为通过。其余合成几何和接口回归仍应执行。发布检查见 [验证记录](docs/RELEASE_VALIDATION.md)。
 
-本次 Windows 发布检查：127 项回归测试通过；冻结 EXE 的图像分析、未知尺度、并行子进程、GUI 渲染、资源和无需激活的普通启动均通过。公式渲染器逐项检查了技术方案的 50 个独立公式与 129 个行内公式；HTML 及字体随项目提供，可离线阅读。完整记录见 [发布验证](docs/RELEASE_VALIDATION.md)。
+## 目录与许可
 
-四图按记录参数复现：`python scripts/reproduce_four_examples.py --images 1` 先计算图①；去掉 `--images 1` 计算全部四张。默认输出软件三栏结果图、点位、指标及运行记录至 `results/four_examples`；`--no-figures` 仅导出数据。
+源码位于根目录，`assets/` 为运行资源，`tests/` 为测试代码，`datasets/` 仅含四张示例与参数，`docs/` 为操作与许可 MD。编译产物放在 Releases；开发环境、分析结果和论文技术文档不进入仓库。
 
-论文写作请引用软件版本、数据来源、分割参数、尺度来源、根系模型、交叉参数和质控结果，方法与公式以 [技术方案](docs/TECHNICAL_METHODS.md) 为准。
+[源码许可](LICENSE.md) · [原创文档许可](LICENSE-DOCS.md) · [第三方许可文本](docs/THIRD_PARTY_NOTICES.md)。源码许可不自动覆盖图像数据及第三方依赖。
