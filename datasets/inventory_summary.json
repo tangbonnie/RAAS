@@ -1,0 +1,27 @@
+{
+  "included_source_files": 110,
+  "included_unique_files": 110,
+  "included_bytes": 44278948,
+  "duplicate_sources": 0,
+  "excluded_files": 2577,
+  "excluded_bytes": 15318294869,
+  "included_largest_bytes": 4847858,
+  "included_files_above_100000000": [],
+  "groups": [
+    {
+      "path": "copper_wire/original",
+      "source_files": 82,
+      "source_bytes": 3901801
+    },
+    {
+      "path": "four_examples/original",
+      "source_files": 4,
+      "source_bytes": 8901701
+    },
+    {
+      "path": "real_roots_2024/jpeg",
+      "source_files": 24,
+      "source_bytes": 31475446
+    }
+  ]
+}

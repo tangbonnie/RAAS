@@ -1,0 +1,188 @@
+{
+  "source": "Visual review of supplied raster images; NOT physical measurements or original simulation topology. Development validation, not held-out evaluation.",
+  "selection": "Clear separated terminals and traceable root axes; two isolated crossings and two explicitly annotated crowns included. Other images retained in audit as not reviewed.",
+  "samples": {
+    "600-dicot-sim-1-1-120-15-deg0.jpg": {
+      "tips": 4,
+      "forks": 3,
+      "crossings": 0
+    },
+    "600-dicot-sim-2-1-120-15-deg0.jpg": {
+      "tips": 4,
+      "forks": 3,
+      "crossings": 0
+    },
+    "600-dicot-sim-3-1-120-15-deg0.jpg": {
+      "tips": 8,
+      "forks": 7,
+      "crossings": 0
+    },
+    "600-dicot-sim-4-1-120-15-deg0.jpg": {
+      "tips": 3,
+      "forks": 2,
+      "crossings": 0
+    },
+    "600-dicot-sim-6-1-120-15-deg0.jpg": {
+      "tips": 4,
+      "forks": 3,
+      "crossings": 0
+    },
+    "600-dicot-sim-11-1-120-15-deg0.jpg": {
+      "tips": 2,
+      "forks": 1,
+      "crossings": 0
+    },
+    "600-dicot-sim-13-1-120-15-deg0.jpg": {
+      "tips": 8,
+      "forks": 7,
+      "crossings": 0
+    },
+    "600-dicot-sim-14-1-120-15-deg0.jpg": {
+      "tips": 4,
+      "forks": 3,
+      "crossings": 0
+    },
+    "600-dicot-sim-15-1-120-15-deg0.jpg": {
+      "tips": 1,
+      "forks": 0,
+      "crossings": 0
+    },
+    "600-dicot-sim-16-1-120-15-deg0.jpg": {
+      "tips": 4,
+      "forks": 3,
+      "crossings": 0
+    },
+    "600-dicot-sim-17-1-120-15-deg0.jpg": {
+      "tips": 7,
+      "forks": 6,
+      "crossings": 1
+    },
+    "600-dicot-sim-24-1-120-15-deg0.jpg": {
+      "tips": 3,
+      "forks": 2,
+      "crossings": 0
+    },
+    "600-dicot-sim-25-1-120-15-deg0.jpg": {
+      "tips": 3,
+      "forks": 2,
+      "crossings": 0
+    },
+    "600-dicot-sim-33-1-120-15-deg0.jpg": {
+      "tips": 6,
+      "forks": 5,
+      "crossings": 1
+    },
+    "600-dicot-sim-34-1-120-15-deg0.jpg": {
+      "tips": 2,
+      "forks": 1,
+      "crossings": 0
+    },
+    "600-dicot-sim-35-1-120-15-deg0.jpg": {
+      "tips": 2,
+      "forks": 1,
+      "crossings": 0
+    },
+    "600-dicot-sim-36-1-120-15-deg0.jpg": {
+      "tips": 6,
+      "forks": 5,
+      "crossings": 0
+    },
+    "600-dicot-sim-38-1-120-15-deg0.jpg": {
+      "tips": 4,
+      "forks": 3,
+      "crossings": 0
+    },
+    "600-dicot-sim-39-1-120-15-deg0.jpg": {
+      "tips": 5,
+      "forks": 4,
+      "crossings": 0
+    },
+    "600-dicot-sim-41-1-120-15-deg0.jpg": {
+      "tips": 1,
+      "forks": 0,
+      "crossings": 0
+    },
+    "600-dicot-sim-43-1-120-15-deg0.jpg": {
+      "tips": 11,
+      "forks": 10,
+      "crossings": 0
+    },
+    "600-dicot-sim-45-1-120-15-deg0.jpg": {
+      "tips": 7,
+      "forks": 6,
+      "crossings": 0
+    },
+    "600-monocot-sim-2-1-120-15-deg0.jpg": {
+      "tips": 5,
+      "forks": 0,
+      "crossings": 0,
+      "crown_box": [
+        0,
+        280,
+        165,
+        400
+      ]
+    },
+    "600-monocot-sim-40-1-120-15-deg0.jpg": {
+      "tips": 1,
+      "forks": 0,
+      "crossings": 0
+    },
+    "600-monocot-sim-43-1-120-15-deg0.jpg": {
+      "tips": 7,
+      "forks": 4,
+      "crossings": 0,
+      "crown_box": [
+        0,
+        650,
+        100,
+        850
+      ]
+    },
+    "600-dicot-sim-27-1-120-15-deg0.jpg": {
+      "tips": 9,
+      "forks": 8,
+      "crossings": 0
+    },
+    "600-dicot-sim-29-1-120-15-deg0.jpg": {
+      "tips": 10,
+      "forks": 9,
+      "crossings": 0
+    },
+    "600-dicot-sim-30-1-120-15-deg0.jpg": {
+      "tips": 9,
+      "forks": 8,
+      "crossings": 0
+    },
+    "600-dicot-sim-44-1-120-15-deg0.jpg": {
+      "tips": 4,
+      "forks": 3,
+      "crossings": 0
+    },
+    "600-dicot-sim-49-1-120-15-deg0.jpg": {
+      "tips": 7,
+      "forks": 6,
+      "crossings": 1
+    },
+    "600-monocot-sim-13-1-120-15-deg0.jpg": {
+      "tips": 8,
+      "forks": 6,
+      "crossings": 0
+    },
+    "600-monocot-sim-22-1-120-15-deg0.jpg": {
+      "tips": 7,
+      "forks": 6,
+      "crossings": 1
+    },
+    "600-monocot-sim-48-1-120-15-deg0.jpg": {
+      "tips": 8,
+      "forks": 7,
+      "crossings": 2
+    },
+    "600-dicot-sim-12-1-120-15-deg0.jpg": {
+      "tips": 5,
+      "forks": 4,
+      "crossings": 1
+    }
+  }
+}

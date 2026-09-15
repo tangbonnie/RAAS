@@ -1,0 +1,21 @@
+# Local environments and generated output; datasets are deliberately tracked.
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+Thumbs.db
+build/
+dist/
+results/
+*.log
+# Never commit credentials or local application configuration.
+.env
+.env.*
+keys/
+*.pem
+*.key
+.codex/
+.claude/
+.workbuddy/
+node_modules/

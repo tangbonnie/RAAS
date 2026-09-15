@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "version": "V1.0.0",
+  "description": "Reproduction settings for the four supplied native-resolution images, not biological ground truth. Pixel coordinates use the supplied file dimensions.",
+  "examples": [
+    {
+      "id": 1,
+      "path": "original/input_1.png",
+      "sha256": "d3c8db342ea523ae6a5515e0d86b12d5d34e2e040ab31b333fb031e5bc2bd398",
+      "width": 2790,
+      "height": 4688,
+      "embedded_dpi": null,
+      "calibration_status": "unknown",
+      "preprocess": {
+        "method": "line_art",
+        "foreground": "dark",
+        "intensity_low_ratio": 0.8,
+        "pixel_hole_area": 16,
+        "pixel_hole_connectivity": 4,
+        "dpi": null
+      },
+      "analysis": {
+        "root_model": "shared_crown",
+        "crossing_context": false,
+        "dpi": null
+      },
+      "model_assumption": "independent unbranched roots from one common crown; overlapping path length is inferred",
+      "ground_truth_available": false
+    },
+    {
+      "id": 2,
+      "path": "original/input_2.png",
+      "sha256": "bdc183d0c4bffd1507a5a5455c0c8de2c573aa9a487c4b6bd9128afdcd2f23cf",
+      "width": 2957,
+      "height": 5159,
+      "embedded_dpi": null,
+      "calibration_status": "unknown",
+      "preprocess": {
+        "method": "line_art",
+        "foreground": "dark",
+        "intensity_low_ratio": 0.8,
+        "pixel_hole_area": 16,
+        "pixel_hole_connectivity": 4,
+        "dpi": null
+      },
+      "analysis": {
+        "root_model": "general",
+        "crossing_context": true,
+        "dpi": null
+      },
+      "model_assumption": null,
+      "ground_truth_available": false
+    },
+    {
+      "id": 3,
+      "path": "original/input_3.png",
+      "sha256": "113d5feb676cdfdc1f1baa3deed184c556f1fc7b29fc7ab2509a7e4fd9013e6f",
+      "width": 1426,
+      "height": 3135,
+      "embedded_dpi": null,
+      "calibration_status": "unknown",
+      "preprocess": {
+        "method": "line_art",
+        "foreground": "dark",
+        "intensity_low_ratio": 0.8,
+        "pixel_hole_area": 16,
+        "pixel_hole_connectivity": 4,
+        "dpi": null
+      },
+      "analysis": {
+        "root_model": "general",
+        "crossing_context": true,
+        "dpi": null
+      },
+      "model_assumption": null,
+      "ground_truth_available": false
+    },
+    {
+      "id": 4,
+      "path": "original/input_4.png",
+      "sha256": "f83ab989f90b9276f8abdcd981baf21b913e5b8f17342cbef2071b7f124e0b47",
+      "width": 3401,
+      "height": 4884,
+      "embedded_dpi": null,
+      "calibration_status": "unknown",
+      "preprocess": {
+        "method": "intensity",
+        "foreground": "light",
+        "intensity_low_ratio": 0.8,
+        "pixel_hole_area": 0,
+        "pixel_hole_connectivity": 4,
+        "dpi": null
+      },
+      "analysis": {
+        "root_model": "general",
+        "crossing_context": false,
+        "dpi": null
+      },
+      "model_assumption": null,
+      "ground_truth_available": false
+    }
+  ]
+}

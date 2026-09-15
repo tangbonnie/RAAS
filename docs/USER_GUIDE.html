@@ -1,0 +1,707 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>软件详细使用指南 · V1.0.0</title>
+<link rel="stylesheet" href="_static/katex/katex.min.css"><style>
+body{max-width:1120px;margin:36px auto;padding:0 30px;color:#17212b;font:16px/1.8 'Microsoft YaHei','PingFang SC',sans-serif}
+h1,h2,h3{line-height:1.35}h2{margin-top:2.3em;border-bottom:1px solid #cad6df;padding-bottom:10px}
+table{border-collapse:collapse;width:100%;display:block;overflow:auto;font-size:14px}td,th{border:1px solid #ccd6df;padding:8px 12px;text-align:left}th{background:#edf3f7}
+code,pre{font-family:Consolas,monospace;background:#f2f5f8}pre{padding:16px;overflow:auto;line-height:1.5}code{padding:1px 4px}a{color:#0067ad}
+.katex-display{overflow-x:auto;overflow-y:hidden;padding:12px 0}eqn{display:block;overflow-x:auto;padding:12px 0}blockquote{border-left:4px solid #789;padding-left:18px}
+nav{background:#edf3f7;padding:12px 18px}@media print{body{margin:0;padding:0;font-size:10pt}pre,table{white-space:pre-wrap}nav{display:none}h2,h3{break-after:avoid}}
+</style></head><body><nav><a href="USER_GUIDE.html">使用指南</a> · <a href="TECHNICAL_METHODS.html">技术方案与公式</a> · <a href="USER_GUIDE.md">Markdown 原文</a></nav><h1>根系构型参数量化分析系统使用指南</h1>
+<p><strong>V1.0.0｜无激活码发行版｜更新日期：2026-09-15</strong></p>
+<p>正式作者：唐清芸（石河子大学农学院、新疆农垦科学院）<br>
+软件版权人：王国栋（新疆农垦科学院）</p>
+<p>本指南介绍安装、GUI、命令行、Python API、数据准备和结果解释。<a href="TECHNICAL_METHODS.html">技术方案与数学公式</a> 介绍实际实现和论文方法学；<a href="../datasets/README.md">数据集说明</a> 介绍随项目整理的数据。</p>
+<p>源码仓库：<a href="https://github.com/tangbonnie/RAAS">tangbonnie/RAAS</a>。本项目源码、原创文档、数据集和第三方依赖的条款各自适用，参阅 <a href="../LICENSE">源码许可证</a>、<a href="../LICENSE-DOCS.md">文档许可证</a> 及 <a href="THIRD_PARTY_NOTICES.md">第三方声明</a>。无激活码表示软件无需激活，不改变这些权利归属。</p>
+<h2>1. 选择运行方式</h2>
+<table>
+<thead>
+<tr>
+<th>方式</th>
+<th>Windows</th>
+<th>macOS</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>便携 EXE</td>
+<td>完整解压后运行 <code>RootArchitecture.exe</code></td>
+<td>Windows EXE 不能原生运行</td>
+<td>不安装 Python，进行 GUI 分析</td>
+</tr>
+<tr>
+<td>Python GUI</td>
+<td><code>python root_gui.py</code></td>
+<td><code>python root_gui.py</code></td>
+<td>源码运行，同一 PyQt5 界面</td>
+</tr>
+<tr>
+<td>带启动画面的 GUI</td>
+<td><code>python launcher.py</code></td>
+<td><code>python launcher.py</code></td>
+<td>先显示启动画面，再加载分析模块</td>
+</tr>
+<tr>
+<td>Python 命令行</td>
+<td><code>preprocess.py</code>、<code>root_analysis.py</code></td>
+<td>相同入口</td>
+<td>批量处理及参数记录</td>
+</tr>
+<tr>
+<td>Python API</td>
+<td>可用</td>
+<td>依赖安装成功后可用</td>
+<td>精细控制微孔修复、根冠标注、四图复现等</td>
+</tr>
+</tbody>
+</table>
+<p>本发行版已经移除程序激活流程，不要求输入密钥、激活码或连接授权服务。科学计算在本机完成。</p>
+<p><strong>验证环境边界：</strong> 本次实际运行和编译使用 Windows x64、Python 3.13.12。macOS 下的源码安装与启动步骤依据同一代码提供，尚未完成 macOS 实机测试；没有提供已验证的 <code>.app</code>、<code>.dmg</code> 或 macOS 命令行二进制。Python 3.12 是可尝试的源码安装版本，不能将安装指引写成该版本和所有平台均已实测。</p>
+<h2>2. Windows 安装和启动</h2>
+<h3>2.1 使用便携 EXE</h3>
+<ol>
+<li>完整解压 Windows 发行包到可读写目录，例如 <code>D:\RootArchitecture</code>。</li>
+<li>确认 <code>RootArchitecture.exe</code> 和 <code>_internal</code> 目录在同一级。只复制 EXE 会缺少运行库和界面资源。</li>
+<li>双击 <code>RootArchitecture.exe</code>。第一次加载科学计算库和启动子进程可能需要较长时间，查看启动画面和操作日志。</li>
+<li>选择原图、预处理输出和分析输出目录。建议把分析数据存放在独立工作目录，便于保留原始图像和不同参数的结果。</li>
+</ol>
+<p>本次在开发项目中的交付位置为 <code>dist/RootArchitecture_NoKey_V1.0.0/RootArchitecture/RootArchitecture.exe</code>；拿到便携包后以解压位置为准。该 EXE 启动的是 GUI，没有把 <code>preprocess.py</code> 和 <code>root_analysis.py</code> 的选项封装成 EXE 的通用命令行入口。需要 CLI 时请使用源码环境。</p>
+<h3>2.2 从源码运行</h3>
+<p>先安装匹配机器架构的 Python，进入包含 <code>root_gui.py</code> 的仓库根目录。PowerShell 示例以已安装 Python 3.12 为例：</p>
+<pre><code class="language-powershell">py -3.12 -m venv .venv
+.venv\Scripts\python.exe -m pip install --upgrade pip
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe root_gui.py
+</code></pre>
+<p>若安装的是 3.13，可把第一行换为 <code>py -3.13 -m venv .venv</code>。后续命令直接使用虚拟环境的解释器，不需要修改 PowerShell 的执行策略。</p>
+<p><code>requirements.txt</code> 给出依赖版本范围；<code>requirements-lock.txt</code> 记录当前 Windows 验证环境的固定版本。若要复现该环境，可在对应 Python 版本的独立虚拟环境中安装锁定文件；不要直接把 Windows 的锁定环境等同于已经验证的 macOS 环境。</p>
+<h2>3. macOS 源码 GUI 和命令行</h2>
+<p>使用已安装的 Python 3.12，在“终端”切换到仓库根目录：</p>
+<pre><code class="language-bash">python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python root_gui.py
+</code></pre>
+<p>带启动画面的方式是 <code>python launcher.py</code>。结束时关闭窗口；退出虚拟环境可运行 <code>deactivate</code>。以后再次使用时只需进入项目目录并执行 <code>source .venv/bin/activate</code>，无需重复安装。</p>
+<p>Apple Silicon 机器应使用与所装依赖一致的 ARM64 Python，Intel Mac 使用相应的 x86_64 环境。若 <code>PyQt5</code> 或科学计算依赖无法找到匹配的安装包，先检查 <code>python --version</code>、解释器架构和 <code>python -m pip --version</code>，不要混用另一套 Python 的 <code>pip</code>。程序要求有可用的图形桌面来显示 GUI；纯命令行处理本身不要求打开主窗口。</p>
+<p>macOS 与 Windows 的核心 CLI 命令相同。本文其余示例写作 <code>python ...</code>；Windows 未启用环境时，可替换为 <code>.venv\Scripts\python.exe ...</code>。</p>
+<h2>4. 输入图像与目录</h2>
+<h3>4.1 数据要求</h3>
+<ul>
+<li>支持 PNG、JPG/JPEG、TIF/TIFF、BMP 等入口识别的图像格式。分析针对二维图像，不是三维根系重建。</li>
+<li>保持原生分辨率，保存未修改的原图。二值图和骨架建议使用无损 PNG；JPEG 压缩可能造成细线断裂、微孔和伪连接。</li>
+<li>原图既可以是亮底暗根，也可以是暗底亮根，但分割方法和前景极性必须匹配。</li>
+<li>原图目录采用平铺文件。命令行查找不会递归遍历所有子目录；多个目录应分别传入。</li>
+<li>同一次处理的样本名要唯一。预处理会去掉文件名末尾的 <code>-rgb</code>、<code>_rgb</code>、<code>-raw</code>、<code>_raw</code>、<code>-original</code>、<code>_original</code>，再生成同名二值图和骨架，注意避免去掉后重名。</li>
+<li>从论文图、剪贴板、网页或重新缩放图像得到的图片通常不能凭文件名或屏幕显示推断真实物理尺度。</li>
+</ul>
+<h3>4.2 推荐工作目录</h3>
+<pre><code class="language-text">work/
+├── original/                # 保留原图
+├── processed/
+│   ├── binary/sample_01.png
+│   └── skeleton/sample_01.png
+└── results/                 # CSV、Excel 和导出图
+</code></pre>
+<p><strong>配对按文件名主干相等进行。</strong> <code>binary/sample_01.png</code> 应对应 <code>skeleton/sample_01.png</code>；不是分别命名成 <code>sample_01-binary.png</code> 与 <code>sample_01-skeleton.png</code>。两张图必须尺寸相同、像素位置对应，骨架要属于该二值图。</p>
+<p>项目的数据入口包括：</p>
+<table>
+<thead>
+<tr>
+<th>目录</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>datasets/copper_wire/original/</code></td>
+<td>82 张铜丝模拟根系原图，保留原文件名</td>
+</tr>
+<tr>
+<td><code>datasets/four_examples/original/</code></td>
+<td><code>input_1.png</code> 至 <code>input_4.png</code>，用于四图复核</td>
+</tr>
+<tr>
+<td><code>datasets/real_roots_2024/jpeg/</code></td>
+<td>24 张整理后的真实根系 JPEG</td>
+</tr>
+<tr>
+<td><code>datasets/four_examples/analysis_parameters.json</code></td>
+<td>四图各自的预处理和分析参数</td>
+</tr>
+<tr>
+<td><code>datasets/manifest.csv</code></td>
+<td>尺寸、相对路径、哈希与尺度记录</td>
+</tr>
+</tbody>
+</table>
+<p>82 张铜丝图不需要每次全部运行。调试时先选代表性的简单、局部重叠和密集样本，确认设置后再批处理。数据集不包含这批样本完整的实物长度、真实根尖或分叉标注；哈希和原图清单是可追溯记录，不是量化真值。</p>
+<h2>5. GUI 完整流程</h2>
+<p>Windows EXE、Windows Python GUI 和 macOS Python GUI 使用相同操作逻辑。</p>
+<h3>5.1 图像预处理</h3>
+<ol>
+<li>打开“图像预处理”，选择“原始图像目录”和“输出目录”。</li>
+<li>从“选择图像”中选一张代表图，设置分割方法后点击“预览当前图像”。预览用于检查，批量处理才保存对应输出文件。</li>
+<li>对照原图检查二值掩膜是否漏掉细根、把背景或边框作为根、把相邻根粘连，随后检查骨架是否保持真实连接。</li>
+<li>确认参数后点击“批量处理全部图像”。结果写入输出目录的 <code>binary</code> 和 <code>skeleton</code> 子目录。</li>
+<li>遇到失败样本查看日志中的文件名与原因，不要只凭“完成”提示认为所有样本均成功。</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>对应图像和作用</th>
+<th>使用注意</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>line_art</code></td>
+<td>白底黑色线条、铜丝模拟图；固定灰度阈值 128/255</td>
+<td>固定暗前景，不采用一般去噪、填孔和闭运算</td>
+</tr>
+<tr>
+<td><code>intensity</code></td>
+<td>亮度对比明确的根系图；高低阈值连接保留较弱细根</td>
+<td>GUI 使用自动极性、低阈值比例 0.8；一般形态学后处理参数不用于此分支</td>
+</tr>
+<tr>
+<td><code>otsu</code></td>
+<td>根与背景亮度差明显、照明较均匀</td>
+<td>全局阈值，需核对前景极性</td>
+</tr>
+<tr>
+<td><code>adaptive</code></td>
+<td>亮度随位置变化</td>
+<td>局部阈值；窗口和偏移量需结合图像</td>
+</tr>
+<tr>
+<td><code>texture</code></td>
+<td>单尺度纹理区分</td>
+<td>根较粗或纹理明显时检查效果，弱细线可能不适配</td>
+</tr>
+<tr>
+<td><code>multiscale</code></td>
+<td>融合多尺度纹理信息</td>
+<td>界面默认选项；“推荐”不表示适用于所有样本</td>
+</tr>
+</tbody>
+</table>
+<p>普通后处理中的“最小连通域”和“填孔阈值”实际是<strong>像素面积 px²</strong>。调大最小连通域可能删除真实短细根；调大填孔或闭运算半径可能把独立根粘连。它们会改变待测对象，不是越大越准确。边缘噪声与远距离散点剔除同样需要逐图检查。</p>
+<p>GUI 中可设置的参数是常用子集。指定 <code>foreground</code>、亮度低阈值比例或 <code>pixel_hole_area</code> 等精细参数，使用 CLI 中已经暴露的选项或 Python API，见第 7、8 节。尤其是四图记录中的微孔设置，不能仅靠 GUI 普通“填孔阈值”替代。</p>
+<h3>5.2 可选的图像擦除</h3>
+<ol>
+<li>切换“图像擦除”，选择对应的二值图和骨架目录，再选择样本。</li>
+<li>调整笔刷，左键拖动擦除噪声；操作同步作用于二值图和骨架。</li>
+<li>保存前可使用 <code>Ctrl+Z</code> 撤销上一笔。</li>
+<li>“保存修改”会覆盖所选处理文件，并清空本次撤销历史。先保留原始预处理副本，记录人工修改了哪些区域。</li>
+<li>修改后重新运行分析，使表格与当前图像一致。</li>
+</ol>
+<p>该模块是像素擦除工具，<strong>不提供任意画根、自动补回隐藏根、手工把某个结点重新标成分叉或交叉的完整标注流程</strong>。分析读取保存的骨架，不会从二值图重新生成骨架来覆盖人工修正。若在其他图像软件编辑，须保持二值/骨架尺寸、坐标和单像素结构一致。</p>
+<h3>5.3 根系构型分析</h3>
+<ol>
+<li>选择二值化目录、骨架目录和结果输出目录。</li>
+<li>确认样本下拉框可以找到对应文件，必要时刷新。</li>
+<li>设置 DPI、根系方向、根系模型和交叉短段上下文。</li>
+<li>先点“分析当前样本”，核对三栏结果；随后按需使用“批量分析全部样本”。</li>
+<li>通过 Prev/Next 或样本下拉框核查每个样本。</li>
+</ol>
+<p><strong>DPI：</strong> 界面默认 0 表示自动读取尺度；没有可靠记录就显示像素。输入有效的非零 DPI 表示使用者确认的覆盖值，并在结果中标为 <code>user_supplied</code>。接受的显式范围为 10–10000；不要把默认或猜测分辨率作为扫描记录。</p>
+<p><strong>根系方向：</strong> <code>top</code>、<code>bottom</code>、<code>left</code>、<code>right</code> 指根基所在方向。选择“散根 / 不定向”对应 <code>none</code>，适合没有可确定单一根基的图像；此时不能期待获得有根树所需的级序和拓扑指数。</p>
+<p><strong>根系模型：</strong></p>
+<ul>
+<li><code>general</code>：默认的一般根系模型，允许真实分枝，按图结构识别分叉与交叉候选。</li>
+<li><code>shared_crown</code>：显式假设各条根独立、无侧分枝，并从共同根基发出。程序沿各可见末端回到根基，贴合后分开的部位可解释为束内分离。只有样本构造或观测支持该假设时才选用。共享长度按模型重建，结果标为 <code>model_assumed</code>；不能用于一般真实侧根图来降低分叉计数。</li>
+<li>模型重建要求存在合适的已定向、连通、无未消解环的图；失败原因见 <code>Root_Reconstruction_Status</code> 和 <code>Root_Reconstruction_Reason</code>。选择该模型不保证重建一定成功。</li>
+</ul>
+<p><strong>交叉短段上下文：</strong> 默认为开启。开启时用局部短连接段的上下文辅助判断相交关系；关闭时仍保留基础局部交叉判断。它不是“关闭所有交叉识别”。复杂样本可比较两种设置，记录最终选择，不能按指标是否符合预期倒推选项。</p>
+<p>GUI 的“并行线程数”控件决定同时分析的进程数。高分辨率图像较耗内存；初次试验可设 1，机器资源允许后再增加。单样本保留详细步骤日志，多样本采用进程池。</p>
+<h3>5.4 三栏结果与导出</h3>
+<ul>
+<li><strong>左栏 Binary：</strong> 实际输入二值图。</li>
+<li><strong>中栏 Skeleton + Topology：</strong> 实际输入骨架，以及分析入口返回的识别坐标。黄色是根基、青色是 Tips、红色是 Forks、蓝色是 Crossings。</li>
+<li><strong>右栏 Metrics：</strong> 几何、拓扑、分形、多重分形及质量字段。没有标尺时使用像素列，无法有效计算的项目显示 <code>N/A</code>。</li>
+</ul>
+<p>可开关根尖、分叉、交叉、级序和角度图层，并调整标记大小。工具栏提供缩放、平移、恢复视图和图片保存；保存当前分析图即可得到包含二值图、骨架识别点和指标的三栏结果图。调整图层不重新计算指标，也不修改检测坐标。</p>
+<p>“根直径热力图”显示的是二值掩膜的距离变换，主要帮助检查局部粗细；不能把其色值直接视为最终法向测宽结果。“盒计数格网”显示 32 px 检查网格，不代表分形拟合只用了这个尺度。</p>
+<p>结果表可从“文件”菜单保存 CSV 或导出 Excel。图表可视化支持按数值指标绘图、按分组比较并导出图像。分组标签从样本文件名解析，推荐 <code>年份-品种-处理-重复</code>，例如 <code>2024-DH-P0-1</code>；自动解析出的标签需核对。打开历史 CSV 可以查看数据，但 CSV 不包含完整识别坐标和图像缓存；恢复叠加图需要原二值图、骨架及重新分析。</p>
+<h2>6. 物理尺度与单位</h2>
+<p>程序优先采用显式 DPI，其次读取有效图像元数据。没有尺度来源时，输出 <code>Scale_Source=unknown</code>，物理列为空。文件名含 <code>600</code> 不会自动建立 600 DPI 标定；元数据中有 DPI 也仍需与实验记录相符。编辑器重采样、截图或导出可能使原分辨率记录失效。</p>
+<p>各向同性图像、DPI 为 <eq><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>d</mi></mrow><annotation encoding="application/x-tex">d</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6944em;"></span><span class="mord mathnormal">d</span></span></span></span></eq> 时，像素边长为：</p>
+<section><eqn><span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mi>s</mi><mo>=</mo><mfrac><mn>2.54</mn><mi>d</mi></mfrac><mspace width="1em"/><mrow><mi mathvariant="normal">c</mi><mi mathvariant="normal">m</mi><mi mathvariant="normal">/</mi><mi mathvariant="normal">p</mi><mi mathvariant="normal">x</mi></mrow><mi mathvariant="normal">.</mi></mrow><annotation encoding="application/x-tex">
+s=\frac{2.54}{d}\quad\mathrm{cm/px}.
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span><span class="mspace" style="margin-right:0.2778em;"></span><span class="mrel">=</span><span class="mspace" style="margin-right:0.2778em;"></span></span><span class="katex-base"><span class="katex-strut" style="height:2.0074em;vertical-align:-0.686em;"></span><span class="mord"><span class="mopen nulldelimiter"></span><span class="mfrac"><span class="vlist-t vlist-t2"><span class="vlist-r"><span class="vlist" style="height:1.3214em;"><span style="top:-2.314em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord mathnormal">d</span></span></span><span style="top:-3.23em;"><span class="pstrut" style="height:3em;"></span><span class="frac-line" style="border-bottom-width:0.04em;"></span></span><span style="top:-3.677em;"><span class="pstrut" style="height:3em;"></span><span class="mord"><span class="mord">2.54</span></span></span></span><span class="vlist-s">​</span></span><span class="vlist-r"><span class="vlist" style="height:0.686em;"><span></span></span></span></span></span><span class="mclose nulldelimiter"></span></span><span class="mspace" style="margin-right:1em;"></span><span class="mord"><span class="mord mathrm">cm/px</span></span><span class="mord">.</span></span></span></span></span></eqn></section><p>因此路径长度乘 <eq><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>s</mi></mrow><annotation encoding="application/x-tex">s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.4306em;"></span><span class="mord mathnormal">s</span></span></span></span></eq>，面积乘 <eq><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>2</mn></msup></mrow><annotation encoding="application/x-tex">s^2</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span></span></span></span></eq>，体积乘 <eq><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mi>s</mi><mn>3</mn></msup></mrow><annotation encoding="application/x-tex">s^3</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.8141em;"></span><span class="mord"><span class="mord mathnormal">s</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8141em;"><span style="top:-3.063em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="katex-sizing reset-size6 size3 mtight"><span class="mord mtight">3</span></span></span></span></span></span></span></span></span></span></span></eq>；以毫米表示的直径乘 <eq><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mn>10</mn><mi>s</mi></mrow><annotation encoding="application/x-tex">10s</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="katex-base"><span class="katex-strut" style="height:0.6444em;"></span><span class="mord">10</span><span class="mord mathnormal">s</span></span></span></span></eq>。这是单位换算，不会提高图像识别准确性。软件检查水平与垂直尺度的一致性，不提供一般各向异性像素或透视畸变标定流程。</p>
+<p>有已知实物标尺时，先在原分辨率下建立真实像素—长度关系，再换算等效 DPI；标尺本身应从根系分析区域排除。图像中没有有效标尺且实物记录缺失时，只报告像素量。</p>
+<h2>7. 命令行模式</h2>
+<h3>7.1 最小示例</h3>
+<p>在仓库根目录创建 <code>input</code>，放入少量白底黑线图。运行：</p>
+<pre><code class="language-bash">python preprocess.py -i input -o processed --method line_art
+python root_analysis.py -b processed/binary -s processed/skeleton -o results --root-direction top
+</code></pre>
+<p>全目录示例（会处理目录内全部 82 张，调试阶段可先复制代表图到 <code>input</code>）：</p>
+<pre><code class="language-bash">python preprocess.py -i datasets/copper_wire/original -o processed/copper --method line_art
+python root_analysis.py -b processed/copper/binary -s processed/copper/skeleton -o results/copper
+</code></pre>
+<p>暗背景亮根的强度分割：</p>
+<pre><code class="language-bash">python preprocess.py -i input -o processed/light --method intensity --foreground light
+python root_analysis.py -b processed/light/binary -s processed/light/skeleton -o results/light --no-crossing-context
+</code></pre>
+<p>其中关闭上下文只是参数示例，实际选择需基于该批图像核查。若已由扫描记录确认 600 DPI，可在分析命令末尾添加 <code>--dpi 600</code>；未知尺度时不要添加。</p>
+<p>多个平铺目录按顺序配对：</p>
+<pre><code class="language-bash">python root_analysis.py -b processed/group_a/binary processed/group_b/binary -s processed/group_a/skeleton processed/group_b/skeleton -o results --output_name all_samples.csv
+</code></pre>
+<h3>7.2 预处理 CLI 参数</h3>
+<p>以 <code>python preprocess.py --help</code> 为当前入口的最终清单；下划线和连字符请按表中拼写。</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-i</code> / <code>--input_dirs</code></td>
+<td>必填</td>
+<td>一个或多个原图目录</td>
+</tr>
+<tr>
+<td><code>-o</code> / <code>--output_dir</code></td>
+<td><code>./processed</code></td>
+<td>输出根目录</td>
+</tr>
+<tr>
+<td><code>--method</code></td>
+<td><code>multiscale</code></td>
+<td><code>multiscale/texture/otsu/adaptive/line_art/intensity</code></td>
+</tr>
+<tr>
+<td><code>--foreground</code></td>
+<td><code>auto</code></td>
+<td><code>auto/dark/light</code>；用于 Otsu、自适应和 intensity；line_art 固定暗前景</td>
+</tr>
+<tr>
+<td><code>--window_size</code></td>
+<td>25</td>
+<td>纹理窗口，像素</td>
+</tr>
+<tr>
+<td><code>--block_size</code></td>
+<td>51</td>
+<td>自适应阈值窗口，须为奇数</td>
+</tr>
+<tr>
+<td><code>--offset</code></td>
+<td>10</td>
+<td>自适应阈值偏移量</td>
+</tr>
+<tr>
+<td><code>--min_size</code></td>
+<td>500</td>
+<td>一般后处理删除的小连通域面积阈值，px²</td>
+</tr>
+<tr>
+<td><code>--hole_size</code></td>
+<td>200</td>
+<td>一般后处理的填孔面积阈值，px²</td>
+</tr>
+<tr>
+<td><code>--close_radius</code></td>
+<td>3</td>
+<td>一般闭运算圆盘半径，0 表示跳过</td>
+</tr>
+<tr>
+<td><code>--border_margin</code></td>
+<td>20</td>
+<td>边缘噪声检查宽度，px</td>
+</tr>
+<tr>
+<td><code>--isolation_distance</code></td>
+<td>150</td>
+<td>一般孤立噪声距离阈值，px</td>
+</tr>
+</tbody>
+</table>
+<p><code>line_art</code>、<code>intensity</code> 分支直接骨架化，不执行上表中的一般去噪、填孔、闭运算、边缘和孤立噪声流程。API 提供的微孔修复是另一个显式步骤。当前预处理 CLI 未暴露 <code>dpi</code>、<code>bright_thresh</code>、<code>intensity_low_ratio</code>、<code>pixel_hole_area</code> 和 <code>pixel_hole_connectivity</code>，需使用 Python API；不要向 CLI 传入不存在的选项。</p>
+<h3>7.3 分析 CLI 参数</h3>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>默认值</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-b</code> / <code>--binary_dirs</code></td>
+<td>必填</td>
+<td>二值图目录，可多个</td>
+</tr>
+<tr>
+<td><code>-s</code> / <code>--skeleton_dirs</code></td>
+<td>必填</td>
+<td>骨架目录，与 <code>-b</code> 数量和顺序一致</td>
+</tr>
+<tr>
+<td><code>-o</code> / <code>--output_dir</code></td>
+<td><code>./results</code></td>
+<td>CSV 输出目录</td>
+</tr>
+<tr>
+<td><code>--dpi</code></td>
+<td>未指定</td>
+<td>可信 DPI 的显式覆盖；未知时不填</td>
+</tr>
+<tr>
+<td><code>--root-direction</code></td>
+<td><code>top</code></td>
+<td><code>top/bottom/left/right/none</code></td>
+</tr>
+<tr>
+<td><code>--root-model</code></td>
+<td><code>general</code></td>
+<td><code>general/shared_crown</code></td>
+</tr>
+<tr>
+<td><code>--no-crossing-context</code></td>
+<td>未指定，即上下文开启</td>
+<td>关闭交叉短段上下文</td>
+</tr>
+<tr>
+<td><code>--output_name</code></td>
+<td><code>root_architecture_metrics.csv</code></td>
+<td>CSV 文件名</td>
+</tr>
+</tbody>
+</table>
+<p>CLI 分析按样本顺序执行；GUI 的并行数不是 CLI 参数。程序返回的 CSV 包含可导出的质量字段，级序明细列随结果变化，不应按固定列数读取。</p>
+<h2>8. Python API 与四图精确参数复现</h2>
+<h3>8.1 单张图</h3>
+<p>在仓库根目录的 Python 脚本中：</p>
+<pre><code class="language-python">from preprocess import process_single_image
+from root_analysis import analyze_root_image
+
+binary, skeleton = process_single_image(
+    &quot;datasets/four_examples/original/input_1.png&quot;,
+    &quot;processed/example_1&quot;,
+    method=&quot;line_art&quot;,
+    foreground=&quot;dark&quot;,
+    pixel_hole_area=16,
+    pixel_hole_connectivity=4,
+    dpi=None,
+)
+result = analyze_root_image(
+    binary, skeleton,
+    sample_id=&quot;input_1&quot;,
+    dpi=None,
+    root_direction=&quot;top&quot;,
+    root_model=&quot;shared_crown&quot;,
+    crossing_context=False,
+)
+for field in (&quot;Num_Tips&quot;, &quot;Num_Forks&quot;, &quot;Num_Crossings&quot;,
+              &quot;Root_Length_px&quot;, &quot;Scale_Source&quot;, &quot;Topology_Status&quot;):
+    print(field, result[field])
+</code></pre>
+<p>这一组参数是已记录的示例设置，不是通用默认参数。<code>pixel_hole_connectivity=4</code> 可能合并斜向一个像素的间隙，需要视作显式图像处理假设；不能称为无损修复。普通长缝和较大空隙有保护条件，详见技术方案。</p>
+<h3>8.2 四图参数和正确用法</h3>
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>方法</th>
+<th>微孔最大面积 / 背景连通性</th>
+<th>模型</th>
+<th>交叉短段上下文</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>input_1.png</code> 共同根基铜丝</td>
+<td><code>line_art</code></td>
+<td>16 px² / 4</td>
+<td><code>shared_crown</code></td>
+<td>关闭</td>
+</tr>
+<tr>
+<td><code>input_2.png</code> 重叠铜丝</td>
+<td><code>line_art</code></td>
+<td>16 px² / 4</td>
+<td><code>general</code></td>
+<td>开启</td>
+</tr>
+<tr>
+<td><code>input_3.png</code> 密集铜丝</td>
+<td><code>line_art</code></td>
+<td>16 px² / 4</td>
+<td><code>general</code></td>
+<td>开启</td>
+</tr>
+<tr>
+<td><code>input_4.png</code> 真实根系</td>
+<td><code>intensity</code>，亮前景，低阈值比 0.8</td>
+<td>不修复微孔</td>
+<td><code>general</code></td>
+<td>关闭</td>
+</tr>
+</tbody>
+</table>
+<p>四图均为未知物理尺度。若在 GUI 复核这些参数的结果，先用 API 完成预处理，再在 GUI 选择其二值/骨架目录与对应模型和上下文选项。不能把四张不同类型图一起按同一种分割方式、同一种模型批处理后称为同一复现实验。</p>
+<p>仓库已经提供 <a href="../scripts/reproduce_four_examples.py">四图复现脚本</a>，它读取上述参数 JSON 并校验输入哈希，无需手工复制参数：</p>
+<pre><code class="language-bash">python scripts/reproduce_four_examples.py --images 1
+python scripts/reproduce_four_examples.py --images 2 3 4
+</code></pre>
+<p>不指定 <code>--images</code> 时计算全部四张，真实图耗时较长。<code>--output-dir</code> 可以指定输出目录，默认 <code>results/four_examples</code>；<code>--no-figures</code> 只计算数据、不导入 Qt 绘图组件。例如：</p>
+<pre><code class="language-bash">python scripts/reproduce_four_examples.py --images 1 --no-figures --output-dir results/first_example
+</code></pre>
+<p>输出包含 <code>processed_N</code> 下的二值/骨架、<code>figure_N.png</code>、<code>metrics_N.json</code>、<code>points_N.csv</code>、<code>metrics.csv</code> 及 <code>provenance.json</code>，记录输入、参数、源码/依赖信息和本次运行情况；<code>--no-figures</code> 时不生成图片。每次的合并 CSV 和运行记录只包含本次所选图，不累计之前分次运行的样本；需要一张四图汇总表时一次运行全部四张。</p>
+<p>每张图通过 <code>analyze_root_image</code> 运行，再将返回的结果传给软件实际的 <code>AnalysisResultViewer</code>。没有按期待的计数另行补点；PNG 是软件绘图组件导出的结果，不是人工绘制的示意图。</p>
+<h3>8.3 人工根冠与显式根基</h3>
+<p>API 支持 <code>base_rc=(row, column)</code> 指定根基附近的图节点，或 <code>crown_box=[row_min, column_min, row_max, column_max]</code> 指定人工确认的根冠区域。坐标按<strong>原图像素、左上角为原点、行在前列在后</strong>，不是常见的 <code>(x,y)</code> 顺序。</p>
+<p>也可在二值图旁保存同名标注文件，例如：</p>
+<pre><code class="language-text">processed/binary/sample_01.png
+processed/binary/sample_01.png.review.json
+</code></pre>
+<p>其中 JSON 格式示例为：</p>
+<pre><code class="language-json">{&quot;crown_box&quot;: [10, 120, 90, 230]}
+</code></pre>
+<p>这些数字仅演示格式，必须换成当前图像人工核查的真实区域。矩形内需包含合适的连通图节点。读取失败、坐标反转或区域无效时标记 <code>invalid_crown</code> 并记录原因；不要扩大矩形来强行隐藏错误分叉。当前侧车文件读取的是 <code>crown_box</code>，显式 <code>base_rc</code> 使用 API 参数；GUI 没有绘制这类标注的专门工具。人工根冠标注与 <code>shared_crown</code> 模型也是两个不同操作，必须分别记录。</p>
+<h2>9. 如何读取指标与质量字段</h2>
+<h3>9.1 常用字段</h3>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Num_Bases</code></td>
+<td>算法确定的根基数量，根基不计入 Tips</td>
+</tr>
+<tr>
+<td><code>Num_Tips</code></td>
+<td>可见骨架末端总数，包含疑似裁切、边界或碎片端点；复杂图中是候选根尖</td>
+</tr>
+<tr>
+<td><code>Num_Forks</code></td>
+<td>分叉/连接点候选数，不是整条侧根的数量，也不是图边数</td>
+</tr>
+<tr>
+<td><code>Num_Crossings</code></td>
+<td>根据几何与图结构条件识别的交叉候选数；可能漏判或误判</td>
+</tr>
+<tr>
+<td><code>Num_Junctions</code></td>
+<td>连接相关汇总计数，须结合分叉和交叉解释</td>
+</tr>
+<tr>
+<td><code>Root_Length_px</code> / <code>Root_Length_cm</code></td>
+<td>最终用于量化的路径总长；重建模型可能包含推断段</td>
+</tr>
+<tr>
+<td><code>Projected_Path_Length_px</code></td>
+<td>观测图的路径长度，用于区别模型重复分配的共享段</td>
+</tr>
+<tr>
+<td><code>Avg_Root_Diameter_px</code> / <code>Avg_Root_Diameter_mm</code></td>
+<td>路径长度加权的直径估计，不是各根简单算术平均</td>
+</tr>
+<tr>
+<td><code>Root_Surface_Area_*</code> / <code>Root_Volume_*</code></td>
+<td>依据局部直径与路径、圆柱近似计算；不是三维实测值</td>
+</tr>
+<tr>
+<td><code>Avg_Link_Length_*</code></td>
+<td>图中连接段平均长度，不等同于每条完整侧根的平均长度</td>
+</tr>
+<tr>
+<td><code>Tip_Density_*</code> / <code>Branch_Density_*</code></td>
+<td>端点或分叉计数除以路径长度</td>
+</tr>
+<tr>
+<td><code>Topological_Index</code>、<code>TI_*</code>、<code>Strahler_*</code></td>
+<td>依赖有效根基及树状关系的层级指标</td>
+</tr>
+<tr>
+<td><code>Fractal_Dimension</code>、<code>Fractal_Abundance</code></td>
+<td>二值投影在有限尺度上的盒计数拟合指标</td>
+</tr>
+<tr>
+<td><code>MF_*</code></td>
+<td>二值投影的多重分形量与拟合诊断</td>
+</tr>
+</tbody>
+</table>
+<p>字段末尾 <code>px</code>、<code>px2</code>、<code>px3</code> 为像素单位，<code>cm</code>、<code>cm2</code>、<code>cm3</code>、<code>mm</code> 为物理单位。指标的严格定义、拟合区间和公式见 <a href="TECHNICAL_METHODS.html">技术方案</a>。</p>
+<h3>9.2 必须随数据保存的质量信息</h3>
+<table>
+<thead>
+<tr>
+<th>字段 / 状态</th>
+<th>正确解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Scale_Source=metadata</code></td>
+<td>采用图像元数据中的尺度，仍需实验记录支持</td>
+</tr>
+<tr>
+<td><code>Scale_Source=user_supplied</code></td>
+<td>使用者显式提供 DPI</td>
+</tr>
+<tr>
+<td><code>Scale_Source=unknown</code></td>
+<td>无可信尺度，厘米、毫米等列不应当作测量值</td>
+</tr>
+<tr>
+<td><code>Topology_Status=ok</code></td>
+<td>当前结构满足算法的一致性条件；不是人工准确率证明</td>
+</tr>
+<tr>
+<td><code>Topology_Status=model_assumed</code></td>
+<td>结果依赖显式共同根基模型</td>
+</tr>
+<tr>
+<td><code>Topology_Status=unresolved</code></td>
+<td>交叉、环或连接关系未解决；相关层级指标未定义</td>
+</tr>
+<tr>
+<td><code>Topology_Status=invalid_crown</code></td>
+<td>根冠标注无效，查看 <code>Topology_Error</code></td>
+</tr>
+<tr>
+<td><code>Cycle_Rank</code></td>
+<td>未消解环的数量诊断；大于 0 提醒图不是简单树</td>
+</tr>
+<tr>
+<td><code>Num_Components</code></td>
+<td>连通分量数；大于 1 可能涉及散根、断裂或背景碎片</td>
+</tr>
+<tr>
+<td><code>Num_Uncertain_Junctions</code></td>
+<td>仍有歧义的连接点数，是候选连接点的诊断子集</td>
+</tr>
+<tr>
+<td><code>Num_Fragment_Endpoints</code> / <code>Num_Boundary_Endpoints</code> / <code>Num_Possible_Crop_Endpoints</code></td>
+<td>端点诊断，不要与 <code>Num_Tips</code> 再相加</td>
+</tr>
+<tr>
+<td><code>Diameter_Measured_Length_Fraction</code></td>
+<td>可以直接可靠测宽的路径覆盖比例</td>
+</tr>
+<tr>
+<td><code>Diameter_Unresolved_Length_Fraction</code></td>
+<td>无法可靠确定直径的路径比例</td>
+</tr>
+<tr>
+<td><code>Path_Inferred_Length_Fraction</code></td>
+<td>推断路径长度占总路径长度的比例</td>
+</tr>
+<tr>
+<td><code>Crown_Annotation</code></td>
+<td>根冠来自人工矩形、局部推断，或没有标注</td>
+</tr>
+<tr>
+<td><code>MF_Quality</code>、<code>MF_Min_R2</code>、<code>FD_R2</code></td>
+<td>有限尺度拟合质量，需结合有效尺度和数据图审查</td>
+</tr>
+</tbody>
+</table>
+<p>CSV 中比例字段采用 0–1；GUI 指标栏明确标 <code>%</code> 的对应项显示为百分数。未直接测得与完全无法确定并非同一类：一部分直径可从同一根的可测段估计。详细分类见技术说明。</p>
+<p><strong>N/A 与 0 不同。</strong> 0 表示实际返回的零值；N/A 表示没有定义或前提不足。例如，含未解决连接关系时不能把不可计算的 Strahler 级序、TI 或角度改写为 0。Excel 和 CSV 中的空值也应保留。</p>
+<p>疑似裁切端点已经并入可见端点显示，软件保留诊断字段便于追溯。第四张真实图中的端点包含大量可能的碎片或断裂端，不能直接解释成已确认的完整根尖。</p>
+<h2>10. 常见问题</h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>检查和处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>找不到 Python / 模块</td>
+<td>确认使用虚拟环境解释器；用同一个 <code>python -m pip</code> 安装依赖</td>
+</tr>
+<tr>
+<td>EXE 缺 DLL、Qt 插件或无法启动</td>
+<td>检查是否完整解压，<code>_internal</code> 是否同级；查看发行自检报告和系统提示</td>
+</tr>
+<tr>
+<td>macOS 安装 PyQt5 失败</td>
+<td>核对 Python 版本和架构、依赖安装包匹配情况；此平台未实机验证</td>
+</tr>
+<tr>
+<td>找不到样本对</td>
+<td>两目录同名主干、平铺放置、扩展名可识别；刷新样本列表</td>
+</tr>
+<tr>
+<td>根全黑或背景全白</td>
+<td>检查前景极性和方法；line_art 固定用于白底黑线</td>
+</tr>
+<tr>
+<td>细根断裂、末端大量增加</td>
+<td>先检查分割和 JPEG 损伤；不要直接靠删除端点让计数接近期望</td>
+</tr>
+<tr>
+<td>相邻根粘连、分叉过多</td>
+<td>检查闭运算和填孔；先减小会改变连接关系的处理，再复核原图</td>
+</tr>
+<tr>
+<td>根基被当根尖</td>
+<td>核对根基方向及是否为散根模式；必要时通过人工标注/API 提供根基信息</td>
+</tr>
+<tr>
+<td>共同根基仍有分叉</td>
+<td>检查所选模型是否适用于该样本，以及是否满足可重建图条件</td>
+</tr>
+<tr>
+<td>cm/mm 列空白</td>
+<td>查看 <code>Scale_Source</code>，未知尺度保留像素量；不要随意补 300 或 600 DPI</td>
+</tr>
+<tr>
+<td>TI、角度或 Strahler 为 N/A</td>
+<td>检查根基、连通块、环和拓扑状态；无需强行补值</td>
+</tr>
+<tr>
+<td>很慢或内存占用大</td>
+<td>先单张、并行数设 1；密集真实图远多于简单线图的图节点和交会，耗时不同</td>
+</tr>
+<tr>
+<td>历史 CSV 的数值与当前图不符</td>
+<td>核对版本、处理参数及人工修改记录，并重新分析当前二值/骨架文件</td>
+</tr>
+</tbody>
+</table>
+<p>复杂真实图像中的遮挡无法仅靠单幅二维投影唯一恢复。分割、结构解释和几何测量是不同阶段；单像素骨架是计算工具，不会自动消除交叉、贴合或根冠歧义。</p>
+<h2>11. 回归检查与 Windows 编译</h2>
+<p>在源码环境中执行：</p>
+<pre><code class="language-bash">python -m pip install -r requirements-dev.txt
+python -m pytest tests -q
+python build_exe.py
+</code></pre>
+<p>编译脚本使用当前 Python 环境和 <code>RootArchitecture.spec</code>。Windows 默认输出为 <code>dist/RootArchitecture/RootArchitecture.exe</code>；编译目录、日志和验证文件在 <code>build</code>。可用 <code>--output-dir</code> 和 <code>--work-dir</code> 指定其他位置，例如：</p>
+<pre><code class="language-powershell">python build_exe.py --output-dir ../dist/RootArchitecture_NoKey_V1.0.0 --work-dir ../build/no_key_release
+</code></pre>
+<p>目标应用目录已存在时，脚本停止并要求选择新输出目录，不会静默覆盖既有发行版。构建过程检查分析计算、并行工作进程和正常 GUI 启动，并核查可执行归档未包含已移除的激活模块。最终交付保留整个应用目录；数据集属于独立源码/数据包，不要求复制进 <code>_internal</code>。</p>
+<p>当前编译脚本专门生成 Windows 便携 EXE，不生成 macOS 安装包，也不生成 Inno Setup 安装器。macOS 用源码 GUI 或 CLI。不要把旧版本的打包选项（例如 <code>--pyonly</code>）用于本脚本。</p>
+<h2>12. 给论文作者的可复现记录</h2>
+<p>用于 CEA 稿件时，保存以下实际记录，并与技术方案对照：</p>
+<ol>
+<li>使用的软件版本、源码归档或提交标识、依赖版本与运行平台。</li>
+<li>原图来源、原生尺寸、文件哈希、裁切或缩放记录；实物标尺/扫描 DPI 的原始记录。</li>
+<li>每组样本的分割方式、前景极性、去噪/填孔/闭运算和微孔处理参数。</li>
+<li>原图、最终二值图、最终骨架、人工擦除和根冠标注记录。</li>
+<li>根系方向、一般/共同根基模型、交叉上下文开关及其使用依据。</li>
+<li>完整指标和质量字段，不能只保留看起来正确的计数或只导出图中一部分指标。</li>
+<li>人工标注/实物真值的来源、独立验证样本、定位和计数误差、长度与直径误差、失败案例。</li>
+</ol>
+<p>已有铜丝和真实图示例可以展示处理流程及限制，但缺少实物记录的样本不能用于宣称绝对长度、表面积、体积的实测准确率。回归测试通过只能证明测试覆盖的代码行为，不能替代真实样本的独立准确性评估。</p>
+<p>本指南内的数学公式使用 GitHub 支持的 LaTeX 数学语法；完整推导在 <a href="TECHNICAL_METHODS.html">TECHNICAL_METHODS.md</a>。阅读时应使用支持数学渲染的 Markdown 查看器或项目提供的渲染版文档，不要以纯文本编辑器显示的反斜杠判断公式错误。</p>
+</body></html>

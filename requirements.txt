@@ -1,0 +1,26 @@
+# Root Architecture 1.0.0 — supported dependency ranges
+# Verified release environment: Windows x64, Python 3.13.12 (2026-09-15).
+# Exact installed versions: requirements-lock.txt. Other combinations not revalidated.
+# Install: python -m pip install -r requirements.txt
+# Optional build/test dependencies: requirements-dev.txt.
+
+# ── 核心科学计算 / Core scientific stack ─────────────────────────────
+numpy>=1.24,<3.0          # ≥1.24 for stable typed-ufunc API; <3.0 to avoid breaking changes
+scipy>=1.10,<2.0
+pandas>=2.0,<4.0
+
+# ── 图像处理 / Image processing ──────────────────────────────────────
+scikit-image>=0.21,<1.0   # skeletonize, sato vessel filter, morphology
+Pillow>=10.0,<13.0        # Image I/O + DPI metadata read/write
+skan>=0.11,<1.0           # skeleton-to-graph conversion (topology core; required)
+networkx>=2.8,<4.0        # cycle/bridge diagnostics for unresolved junctions
+
+# ── 可视化 / Visualization ───────────────────────────────────────────
+matplotlib>=3.7,<4.0
+
+# ── GUI ──────────────────────────────────────────────────────────────
+PyQt5>=5.15,<6.0          # Desktop interface
+
+# ── 数据输出 / Data export ───────────────────────────────────────────
+openpyxl>=3.1,<4.0        # Excel export
+
