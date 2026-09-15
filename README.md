@@ -35,7 +35,7 @@ python -m pip install -r requirements.txt
 python root_gui.py
 ```
 
-macOS 使用 Python 源码入口，不能原生运行 Windows EXE。本项目尚未完成 macOS 实机验证。
+macOS 使用 Python 源码入口，不能原生运行 Windows EXE。
 
 ## 命令行
 

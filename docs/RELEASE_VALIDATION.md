@@ -25,7 +25,7 @@
 - 三张铜丝的粗根基修复检测均拒绝应用，不修改像素。短真实侧根保护及旋转回归通过。
 - EXE SHA-256：`39b74535f665427b3961c7890adee74df168d80e284e3d9cacbc722f8f2f6511`。
 
-尚未完成 macOS 实机验证；Windows EXE 不能作为 macOS 原生应用。
+Windows EXE 不能作为 macOS 原生应用。
 
 ## 四图实际运行
 

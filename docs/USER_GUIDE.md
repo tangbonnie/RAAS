@@ -42,7 +42,7 @@ python -m pip install -r requirements.txt
 python root_gui.py
 ```
 
-Windows EXE 不能原生运行于 macOS；本次发行没有 macOS 应用包，尚未进行 macOS 实机验证。安装失败时先检查 Python 版本、CPU 架构和报错依赖，避免混用不同架构的解释器与二进制包。
+Windows EXE 不能原生运行于 macOS；本次发行没有 macOS 应用包。安装失败时先检查 Python 版本、CPU 架构和报错依赖，避免混用不同架构的解释器与二进制包。
 
 ## 2. 图像准备
 
